@@ -144,6 +144,9 @@ public:
     //! Compute the type with the intersection of properties.
     constexpr Type operator&(Type x) const { return Type(m_flags & x.m_flags); }
 
+    //! Compute the type with the properties of x removed.
+    constexpr Type Without(Type x) const { return Type(m_flags & ~x.m_flags); }
+
     //! Check whether the left hand's properties are superset of the right's (= left is a subtype of right).
     constexpr bool operator<<(Type x) const { return (x.m_flags & ~m_flags) == 0; }
 

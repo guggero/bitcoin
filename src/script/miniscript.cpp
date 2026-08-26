@@ -20,6 +20,13 @@ Type SanitizeType(Type e) {
     int num_types = (e << "K"_mst) + (e << "V"_mst) + (e << "B"_mst) + (e << "W"_mst);
     if (num_types == 0) return ""_mst; // No valid type, don't care about the rest
     CHECK_NONFATAL(num_types == 1); // K, V, B, W all conflict with each other
+
+    // The "s", "f" and "e" properties describe the satisfactions and dissatisfactions of an
+    // expression only if it meets the malleability requirement of every fragment it is built
+    // from, which is what "m" tracks. Once an expression is malleable, so is every expression
+    // containing it, and none of the three says anything about any of them, so they are not
+    // carried for a malleable expression. BIP-379 states this below its malleability table.
+    if (!(e << "m"_mst)) e = e.Without("sfe"_mst);
     CHECK_NONFATAL(!(e << "z"_mst) || !(e << "o"_mst)); // z conflicts with o
     CHECK_NONFATAL(!(e << "n"_mst) || !(e << "z"_mst)); // n conflicts with z
     CHECK_NONFATAL(!(e << "n"_mst) || !(e << "W"_mst)); // n conflicts with W
@@ -30,8 +37,8 @@ Type SanitizeType(Type e) {
     CHECK_NONFATAL(!(e << "e"_mst) ||  (e << "d"_mst)); // e implies d
     CHECK_NONFATAL(!(e << "V"_mst) || !(e << "e"_mst)); // V conflicts with e
     CHECK_NONFATAL(!(e << "d"_mst) || !(e << "f"_mst)); // d conflicts with f
-    CHECK_NONFATAL(!(e << "V"_mst) ||  (e << "f"_mst)); // V implies f
-    CHECK_NONFATAL(!(e << "K"_mst) ||  (e << "s"_mst)); // K implies s
+    CHECK_NONFATAL(!(e << "Vm"_mst) || (e << "f"_mst)); // V implies f (if non-malleable)
+    CHECK_NONFATAL(!(e << "Km"_mst) || (e << "s"_mst)); // K implies s (if non-malleable)
     CHECK_NONFATAL(!(e << "z"_mst) ||  (e << "m"_mst)); // z implies m
     return e;
 }

@@ -462,7 +462,13 @@ void Test(const std::string& ms, const std::string& hexscript, int mode, const K
         BOOST_CHECK_MESSAGE(node->ScriptSize() == computed_script.size(), "Script size mismatch: " + ms);
         if (hexscript != "?") BOOST_CHECK_MESSAGE(HexStr(computed_script) == hexscript, "Script mismatch: " + ms + " (" + HexStr(computed_script) + " vs " + hexscript + ")");
         BOOST_CHECK_MESSAGE(node->IsNonMalleable() == !!(mode & TESTMODE_NONMAL), "Malleability mismatch: " + ms);
-        BOOST_CHECK_MESSAGE(node->NeedsSignature() == !!(mode & TESTMODE_NEEDSIG), "Signature necessity mismatch: " + ms);
+        // The "s" property is only carried by a non-malleable expression, so the expected value
+        // only applies to those.
+        if (node->IsNonMalleable()) {
+            BOOST_CHECK_MESSAGE(node->NeedsSignature() == !!(mode & TESTMODE_NEEDSIG), "Signature necessity mismatch: " + ms);
+        } else {
+            BOOST_CHECK_MESSAGE(!node->NeedsSignature(), "Malleable expression reports a signature requirement: " + ms);
+        }
         BOOST_CHECK_MESSAGE((node->GetType() << "k"_mst) == !(mode & TESTMODE_TIMELOCKMIX), "Timelock mix mismatch: " + ms);
         auto inferred_miniscript = miniscript::FromScript(computed_script, converter);
         BOOST_CHECK_MESSAGE(inferred_miniscript, "Cannot infer miniscript from script: " + ms);
